@@ -27,16 +27,16 @@ jobs:
           terraform_version: 1.6.0
       - name: Terraform init
         run: terraform init -input=false
-        working-directory: terraform/test
+        working-directory: terraform
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.access_key }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.secret_key }}
       - name: Terraform validate
         run: terraform validate
-        working-directory: terraform/test
+        working-directory: terraform
       - name: Terraform plan
         run: terraform plan -input=false -refresh=false -lock=false
-        working-directory: terraform/test
+        working-directory: terraform
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.access_key }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.secret_key }}
@@ -44,7 +44,7 @@ jobs:
     name: Staging Terraform plan
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: "eu-west-1"
+      AWS_REGION: "eu-west-2"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -54,16 +54,16 @@ jobs:
           terraform_version: 1.6.0
       - name: Terraform init
         run: terraform init -input=false
-        working-directory: terraform/staging
+        working-directory: terraform
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.access_key }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.secret_key }}
       - name: Terraform validate
         run: terraform validate
-        working-directory: terraform/staging
+        working-directory: terraform
       - name: Terraform plan
         run: terraform plan -input=false -refresh=false -lock=false
-        working-directory: terraform/staging
+        working-directory: terraform
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.access_key }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.secret_key }}
@@ -79,7 +79,7 @@ jobs:
           terraform_version: 1.6.0
       - name: Terraform init
         run: terraform init -input=false -backend=false
-        working-directory: terraform/production
+        working-directory: terraform
       - name: Terraform validate
         run: terraform validate
-        working-directory: terraform/production
+        working-directory: terraform
