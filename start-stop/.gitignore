@@ -1,0 +1,16 @@
+# MacOS
+**/.DS_Store
+
+# Local Terraform directories
+**/.terraform/*
+**/terraform.tfstate.d/*
+
+# Local State files
+*.tfstate
+*.tfstate.
+
+# Key
+*.pem
+
+# VSCode
+**/.vscode

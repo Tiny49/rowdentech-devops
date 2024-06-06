@@ -1,0 +1,89 @@
+name: "Terraform apply"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: Either "test" or "staging". Production deployments are applied manually.
+
+jobs:
+  plan:
+    name: Terraform plan
+    runs-on: ubuntu-latest
+    concurrency: tfstate-${{ inputs.environment }}
+    # Note environment is not required, the repository-level access key has enough permissions to run a plan
+    outputs:
+      plan: ${{ steps.plan.outputs.stdout }}
+      plan_exitcode: ${{ steps.plan.outputs.exitcode }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.environment }}
+    env:
+      AWS_REGION: "eu-west-1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        # Exposes stdout, stderr and exitcode as outputs for any steps that run terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform init
+        id: init
+        run: terraform init -input=false
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.access_key }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.secret_key }}
+
+      - name: Terraform Plan
+        id: plan
+        # Terraform's "detailed-exitcode" codes are: 0 for "no changes", 1 for errors, 2 for "valid changes"
+        # We don't save the plan as an artefact as it's sensitive and this repo is public
+        run: >
+          terraform plan -input=false -detailed-exitcode
+        continue-on-error: true
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.access_key }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.secret_key }}
+
+      - name: Fail job if plan failed
+        if: steps.plan.outputs.exitcode == 1
+        run: exit 1
+
+  apply:
+    name: Terraform apply
+    needs: plan
+    runs-on: ubuntu-latest
+    concurrency: tfstate-${{ inputs.environment }}
+    environment: ${{ inputs.environment }}
+    if: needs.plan.outputs.plan_exitcode == 2
+    defaults:
+      run:
+        working-directory: ${{ inputs.environment }}
+    env:
+      AWS_REGION: "eu-west-1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform init
+        id: init
+        run: terraform init -input=false
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.access_key }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.secret_key }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.access_key }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.secret_key }}
