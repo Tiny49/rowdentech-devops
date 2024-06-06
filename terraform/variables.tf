@@ -28,7 +28,3 @@ variable "default_shutdown" {
   default     = "no"
 }
 
-variable "project" {
-  description = "The name of the project."
-  default     = "Rowdentech"
-}

@@ -24,13 +24,13 @@ data "archive_file" "zip_lambda_code" {
 
 resource "aws_iam_role" "startup_shutdown_lambda_role" {
   count              = var.startup_shutdown == "yes" ? 1 : 0
-  name               = "${var.project}-Ec2StartupShutdownLambdaRole"
+  name               = "${terraform.workspace}-Ec2StartupShutdownLambdaRole"
   assume_role_policy = file("${path.module}/files/LambdaAssumeRolePolicy.json")
 }
 
 resource "aws_iam_policy" "startup_shutdown_lambda_policy" {
   count       = var.startup_shutdown == "yes" ? 1 : 0
-  name        = "${var.project}-Ec2StartupShutdownLambdaPolicy"
+  name        = "${terraform.workspace}-Ec2StartupShutdownLambdaPolicy"
   path        = "/"
   description = "IAM policy to allow a lambda to start and stop ec2 instances"
   policy      = file("${path.module}/files/StartupShutdownLambdaPolicy.json")
@@ -51,7 +51,7 @@ resource "aws_lambda_function" "shutdown_lambda" {
   function_name    = "tooling-lambda-ec2shutdown"
   handler          = "LambdaStartStopInstance.stop_instances"
   role             = aws_iam_role.startup_shutdown_lambda_role[0].arn
-  runtime          = "python3.7"
+  runtime          = "python3.11"
   timeout          = 10
   environment {
     variables = {
@@ -64,10 +64,10 @@ resource "aws_lambda_function" "startup_lambda" {
   count            = var.startup_shutdown == "yes" ? 1 : 0
   filename         = data.archive_file.zip_lambda_code[0].output_path
   source_code_hash = filebase64sha256(data.archive_file.zip_lambda_code[0].output_path)
-  function_name    = "${var.project}-lambda-ec2startup"
+  function_name    = "${terraform.workspace}-lambda-ec2startup"
   handler          = "LambdaStartStopInstance.start_instances"
   role             = aws_iam_role.startup_shutdown_lambda_role[0].arn
-  runtime          = "python3.7"
+  runtime          = "python3.11"
   timeout          = 10
 }
 
@@ -75,10 +75,10 @@ resource "aws_lambda_function" "time_check_shutdown_lambda" {
   count            = var.startup_shutdown == "yes" ? 1 : 0
   filename         = data.archive_file.zip_lambda_code[0].output_path
   source_code_hash = filebase64sha256(data.archive_file.zip_lambda_code[0].output_path)
-  function_name    = "${var.project}-lambda-time-checked-ec2shutdown"
+  function_name    = "${terraform.workspace}-lambda-time-checked-ec2shutdown"
   handler          = "LambdaStartStopInstance.time_checked_stop_instances"
   role             = aws_iam_role.startup_shutdown_lambda_role[0].arn
-  runtime          = "python3.7"
+  runtime          = "python3.11"
   timeout          = 10
   environment {
     variables = {
@@ -95,7 +95,7 @@ resource "aws_lambda_function" "time_check_startup_lambda" {
   function_name    = "tooling-lambda-time-checked-ec2startup"
   handler          = "LambdaStartStopInstance.time_checked_start_instances"
   role             = aws_iam_role.startup_shutdown_lambda_role[0].arn
-  runtime          = "python3.7"
+  runtime          = "python3.11"
   timeout          = 10
   environment {
     variables = {

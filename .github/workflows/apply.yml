@@ -6,7 +6,7 @@ on:
       environment:
         required: true
         type: string
-        description: Either "dev" or "staging" or "Production"
+        description: Either "Test" or "staging" or "Production"
 
 jobs:
   plan:
