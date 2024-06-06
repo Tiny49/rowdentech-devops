@@ -6,20 +6,19 @@ on:
       environment:
         required: true
         type: string
-        description: Either "test" or "staging". Production deployments are applied manually.
+        description: Either "dev" or "staging" or "Production"
 
 jobs:
   plan:
     name: Terraform plan
     runs-on: ubuntu-latest
     concurrency: tfstate-${{ inputs.environment }}
-    # Note environment is not required, the repository-level access key has enough permissions to run a plan
     outputs:
       plan: ${{ steps.plan.outputs.stdout }}
       plan_exitcode: ${{ steps.plan.outputs.exitcode }}
     defaults:
       run:
-        working-directory: ${{ inputs.environment }}
+        working-directory: terraform
     env:
       AWS_REGION: "eu-west-2"
     steps:
@@ -65,7 +64,7 @@ jobs:
       run:
         working-directory: ${{ inputs.environment }}
     env:
-      AWS_REGION: "eu-west-1"
+      AWS_REGION: "eu-west-2"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
